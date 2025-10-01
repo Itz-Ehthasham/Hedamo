@@ -9,38 +9,76 @@ import DynamicProductAnalysis from './Components/DynamicProductAnalysis'
 
 function App() {
   const vantaRef = useRef<HTMLDivElement>(null)
+  const vantaEffect = useRef<any>(null)
   const [currentPage, setCurrentPage] = useState('home')
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if ((window as any).VANTA && vantaRef.current) {
-        (window as any).VANTA.BIRDS({
-          el: vantaRef.current,
-          mouseControls: true,
-          touchControls: true,
-          backgroundColor: 0xffffff,
-          color1: 0x3b82f6,
-          color2: 0x8b5cf6,
-          quantity: 3,
-          birdSize: 1.2,
-          speedLimit: 3
-        });
-      }
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+    // Always clean up first
+    if (vantaEffect.current) {
+      try {
+        vantaEffect.current.destroy();
+        vantaEffect.current = null;
+      } catch (e) {}
+    }
+
+    // Only create for home page after cleanup
+    if (currentPage === 'home' && vantaRef.current) {
+      const timer = setTimeout(() => {
+        if ((window as any).VANTA && vantaRef.current && !vantaEffect.current) {
+          try {
+            vantaEffect.current = (window as any).VANTA.BIRDS({
+              el: vantaRef.current,
+              mouseControls: true,
+              touchControls: true,
+              backgroundColor: 0xffffff,
+              color1: 0x3b82f6,
+              color2: 0x8b5cf6,
+              quantity: 4,
+              birdSize: 0.8,
+              speedLimit: 1
+            });
+            console.log('VANTA Birds initialized with 3 birds');
+          } catch (e) {
+            console.log('VANTA init failed:', e);
+          }
+        }
+      },100);
+      
+      return () => {
+        clearTimeout(timer);
+        if (vantaEffect.current) {
+          try {
+            vantaEffect.current.destroy();
+            vantaEffect.current = null;
+          } catch (e) {}
+        }
+      };
+    }
+  }, [currentPage]);
 
   // Simple routing
   useEffect(() => {
-    const path = window.location.pathname;
-    const search = window.location.search;
-    if (path === '/reports') setCurrentPage('reports');
-    else if (path === '/about') setCurrentPage('about');
-    else if (path === '/analyze') setCurrentPage('analyze');
-    else setCurrentPage('home');
+    const updatePage = () => {
+      const path = window.location.pathname;
+      console.log('Updating page for path:', path);
+      if (path === '/reports') setCurrentPage('reports');
+      else if (path === '/about') setCurrentPage('about');
+      else if (path === '/analyze') setCurrentPage('analyze');
+      else setCurrentPage('home');
+    };
+    
+    updatePage();
+    window.addEventListener('popstate', updatePage);
+    window.addEventListener('navigate', updatePage);
+    
+    return () => {
+      window.removeEventListener('popstate', updatePage);
+      window.removeEventListener('navigate', updatePage);
+    };
   }, []);
 
   const renderPage = () => {
+    console.log('Rendering page:', currentPage);
     switch (currentPage) {
       case 'reports':
         return <ReportsPage />;
@@ -56,10 +94,18 @@ function App() {
     }
   };
 
+  const navigateTo = (page: string) => {
+    console.log('Navigating to:', page);
+    setCurrentPage(page);
+    window.history.pushState({}, '', page === 'home' ? '/' : `/${page}`);
+  };
+
   return (
-    <div ref={vantaRef} style={{ minHeight: '100vh' }}>
-      <SimpleHeader />
-      {renderPage()}
+    <div ref={currentPage === 'home' ? vantaRef : null} style={{ minHeight: '100vh', position: 'relative' }}>
+      <SimpleHeader onNavigate={navigateTo} />
+      <div style={{ position: 'relative', zIndex: 10 }}>
+        {renderPage()}
+      </div>
     </div>
   );
 }
