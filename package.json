@@ -11,7 +11,7 @@
     "install:backend": "cd backend && npm install",
     "install:frontend": "cd frontend_hedamo && npm install",
     "install:ai": "cd ai-service && pip install -r requirements.txt",
-    "build": "npm run build:backend && npm run build:frontend",
+    "build": "cd frontend_hedamo && npm install && npm run build",
     "build:backend": "cd backend && npm run build",
     "build:frontend": "cd frontend_hedamo && npm run build"
   },
