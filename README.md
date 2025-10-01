@@ -14,26 +14,38 @@ Hedamo/
 
 ## Quick Start
 
-### 1. AI Service (Port 8000)
+### Option 1: Manual Setup
+
+#### 1. AI Service (Port 8000)
 ```bash
 cd ai-service
 pip install -r requirements.txt
 python app/main.py
 ```
 
-### 2. Backend (Port 3001)
+#### 2. Backend (Port 3001)
 ```bash
 cd backend
 npm install
 npm run dev
 ```
 
-### 3. Frontend (Port 5173)
+#### 3. Frontend (Port 5173)
 ```bash
 cd frontend_hedamo
 npm install
 npm run dev
 ```
+
+### Option 2: Docker (Recommended)
+
+**Or else run the Docker file:**
+
+```bash
+docker-compose up --build
+```
+
+This will automatically start all services with proper configuration.
 
 ## Environment Variables
 
