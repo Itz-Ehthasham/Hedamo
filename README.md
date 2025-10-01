@@ -89,7 +89,31 @@ HUGGINGFACE_API_KEY=your_hf_key (optional)
 
 ## Development
 
+### Local Development
 1. Start all services in order: AI Service → Backend → Frontend
 2. Frontend will be available at http://localhost:5173
 3. Backend API at http://localhost:3001
 4. AI Service at http://localhost:8000
+
+### Docker Deployment
+
+1. **Setup Environment:**
+```bash
+cp .env.docker .env
+# Edit .env with your actual keys
+```
+
+2. **Build and Run:**
+```bash
+docker-compose up --build
+```
+
+3. **Access Application:**
+- Frontend: http://localhost
+- Backend API: http://localhost:3001
+- AI Service: http://localhost:8000
+
+4. **Stop Services:**
+```bash
+docker-compose down
+```

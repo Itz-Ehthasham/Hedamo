@@ -1,4 +1,4 @@
-import { MessageCircle, FileText, CheckCircle } from 'lucide-react';
+import { FileText, CheckCircle } from 'lucide-react';
 
 export default function AIFlowSection() {
   return (

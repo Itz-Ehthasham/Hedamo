@@ -84,6 +84,8 @@ export default function SimpleHero() {
                 });
                 
                 if (response.success) {
+                  // Store the analysis data in sessionStorage
+                  sessionStorage.setItem('analysisData', JSON.stringify(response.data));
                   window.location.href = `/analyze?product=${encodeURIComponent(data.productName || 'analyzed-product')}`;
                 } else {
                   alert('Analysis failed: ' + response.error);

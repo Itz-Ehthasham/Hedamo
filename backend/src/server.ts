@@ -37,6 +37,19 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Hedamo Backend API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/health',
+      api: '/api/*'
+    }
+  });
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({
@@ -144,6 +157,59 @@ app.get('/api/reports', (req, res) => {
     reports: mockReports,
     total: mockReports.length
   });
+});
+
+// PDF Report Generation
+app.post('/api/generate-pdf-report', async (req, res) => {
+  try {
+    const { productData, analysisData } = req.body;
+    const PDFDocument = require('pdfkit');
+    
+    const doc = new PDFDocument();
+    let buffers: Buffer[] = [];
+    
+    doc.on('data', buffers.push.bind(buffers));
+    doc.on('end', () => {
+      const pdfData = Buffer.concat(buffers);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${productData.name}-report.pdf"`);
+      res.send(pdfData);
+    });
+    
+    // Generate PDF content
+    doc.fontSize(20).text('Product Transparency Report', 50, 50);
+    doc.fontSize(16).text(`Product: ${productData.name}`, 50, 100);
+    doc.fontSize(12).text(`Brand: ${productData.brand}`, 50, 130);
+    doc.text(`Category: ${productData.category}`, 50, 150);
+    
+    doc.text('Scores:', 50, 200);
+    doc.text(`Health Score: ${productData.scores?.health || 'N/A'}/10`, 70, 220);
+    doc.text(`Ethical Score: ${productData.scores?.ethical || 'N/A'}/10`, 70, 240);
+    doc.text(`Transparency Score: ${productData.scores?.transparency || 'N/A'}/10`, 70, 260);
+    doc.text(`Overall Score: ${productData.scores?.overall || 'N/A'}/10`, 70, 280);
+    
+    if (analysisData?.score?.strengths) {
+      doc.text('Strengths:', 50, 320);
+      analysisData.score.strengths.forEach((strength: string, index: number) => {
+        doc.text(`• ${strength}`, 70, 340 + (index * 20));
+      });
+    }
+    
+    if (analysisData?.score?.recommendations) {
+      doc.text('Recommendations:', 50, 420);
+      analysisData.score.recommendations.forEach((rec: string, index: number) => {
+        doc.text(`• ${rec}`, 70, 440 + (index * 20));
+      });
+    }
+    
+    doc.end();
+  } catch (error: any) {
+    console.error('PDF Generation Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to generate PDF report',
+      message: error.message
+    });
+  }
 });
 
 app.listen(PORT, () => {

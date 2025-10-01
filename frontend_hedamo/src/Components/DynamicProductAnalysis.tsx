@@ -90,19 +90,97 @@ const mockProducts: Record<string, ProductData> = {
 
 export default function DynamicProductAnalysis({ initialProduct = 'coca-cola' }: { initialProduct?: string }) {
   const [currentProduct, setCurrentProduct] = useState<ProductData>(mockProducts[initialProduct] || mockProducts['coca-cola']);
-  const [activeTab, setActiveTab] = useState('overview');
+
   const [expandedSections, setExpandedSections] = useState<string[]>(['scores']);
   const [isLoading, setIsLoading] = useState(false);
   const [animateScores, setAnimateScores] = useState(false);
+  const [realAnalysisData, setRealAnalysisData] = useState<any>(null);
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
-    // Get product from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const productParam = urlParams.get('product');
-    if (productParam) {
-      const productKey = productParam.toLowerCase().replace(/\s+/g, '-');
-      if (mockProducts[productKey]) {
-        loadProduct(productKey);
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down & past 100px
+        setHeaderVisible(false);
+      } else {
+        // Scrolling up
+        setHeaderVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
+  useEffect(() => {
+    // Check for real analysis data first
+    const analysisData = sessionStorage.getItem('analysisData');
+    if (analysisData) {
+      try {
+        const data = JSON.parse(analysisData);
+        setRealAnalysisData(data);
+        // Update product with real data
+        // Create product from analysis data
+        const urlParams = new URLSearchParams(window.location.search);
+        const productName = urlParams.get('product') || 'Unknown Product';
+        
+        const realProduct = {
+          id: productName.toLowerCase().replace(/\s+/g, '-'),
+          name: productName,
+          brand: data.productInfo?.brand || 'Unknown Brand',
+          category: data.productInfo?.category || 'Unknown Category',
+          image: '📦',
+          scores: {
+            health: Math.min(10, Math.max(1, Math.round((data.score?.overall_score || 50) / 10))),
+            ethical: Math.min(10, Math.max(1, Math.round((data.score?.category_scores?.sourcing_ethics || 50) / 10))),
+            transparency: Math.min(10, Math.max(1, Math.round((data.score?.category_scores?.certifications || 50) / 10))),
+            overall: Math.min(10, Math.max(1, data.score?.overall_score || 5))
+          },
+          ingredients: [
+            { name: 'Analysis in progress', risk: 'low' as const, description: 'Detailed ingredient analysis coming soon' }
+          ],
+          sourcing: { 
+            origin: data.productInfo?.origin || 'Information being gathered', 
+            certifications: data.score?.strengths?.slice(0, 2) || [], 
+            laborScore: Math.round((data.score?.category_scores?.labor_practices || 50) / 10)
+          },
+          manufacturing: { 
+            location: 'Information being gathered', 
+            carbonFootprint: Math.round(data.score?.category_scores?.environmental || 50), 
+            waterUsage: 50 
+          },
+          sustainability: { 
+            packaging: Math.round(data.score?.category_scores?.environmental || 50), 
+            recyclability: 70, 
+            carbonScore: Math.round(data.score?.category_scores?.environmental || 50) 
+          },
+          healthImpact: {
+            benefits: data.score?.strengths || ['Analysis in progress'],
+            concerns: data.score?.weaknesses || ['Analysis in progress'],
+            allergens: []
+          }
+        };
+        
+        setCurrentProduct(realProduct);
+        setTimeout(() => setAnimateScores(true), 100);
+      } catch (error) {
+        console.error('Error parsing analysis data:', error);
+      }
+    } else {
+      // Fallback to URL parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const productParam = urlParams.get('product');
+      if (productParam) {
+        const productKey = productParam.toLowerCase().replace(/\s+/g, '-');
+        if (mockProducts[productKey]) {
+          loadProduct(productKey);
+        }
       }
     }
   }, []);
@@ -111,13 +189,56 @@ export default function DynamicProductAnalysis({ initialProduct = 'coca-cola' }:
     setIsLoading(true);
     setAnimateScores(false);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800));
+    try {
+      // Get AI analysis for the product
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/analyze-product`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productData: {
+            productName: mockProducts[productKey]?.name || 'Unknown Product',
+            brand: mockProducts[productKey]?.brand || 'Unknown Brand',
+            category: mockProducts[productKey]?.category || 'Unknown Category',
+            answers: [
+              { question: 'Product ingredients', answer: 'Standard commercial ingredients' },
+              { question: 'Manufacturing process', answer: 'Industrial manufacturing with quality controls' },
+              { question: 'Sustainability practices', answer: 'Following industry standards' }
+            ]
+          }
+        })
+      });
+      
+      if (response.ok) {
+        const aiData = await response.json();
+        const baseProduct = mockProducts[productKey];
+        
+        // Update product with AI insights
+        const updatedProduct = {
+          ...baseProduct,
+          scores: {
+            health: Math.min(10, Math.max(1, Math.round((aiData.score?.overall_score || 50) / 10))),
+            ethical: Math.min(10, Math.max(1, Math.round((aiData.score?.category_scores?.sourcing_ethics || 50) / 10))),
+            transparency: Math.min(10, Math.max(1, Math.round((aiData.score?.category_scores?.certifications || 50) / 10))),
+            overall: Math.min(10, Math.max(1, aiData.score?.overall_score || 5))
+          },
+          healthImpact: {
+            ...baseProduct.healthImpact,
+            benefits: aiData.score?.strengths || baseProduct.healthImpact.benefits,
+            concerns: aiData.score?.weaknesses || baseProduct.healthImpact.concerns
+          }
+        };
+        
+        setCurrentProduct(updatedProduct);
+        setRealAnalysisData(aiData);
+      } else {
+        setCurrentProduct(mockProducts[productKey]);
+      }
+    } catch (error) {
+      console.error('AI Analysis failed:', error);
+      setCurrentProduct(mockProducts[productKey]);
+    }
     
-    setCurrentProduct(mockProducts[productKey]);
     setIsLoading(false);
-    
-    // Trigger score animations
     setTimeout(() => setAnimateScores(true), 100);
   };
 
@@ -276,81 +397,9 @@ export default function DynamicProductAnalysis({ initialProduct = 'coca-cola' }:
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
-      {/* Header */}
-      <header style={{
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid #e5e7eb',
-        padding: '1rem 2rem',
-        position: 'sticky',
-        top: 0,
-        zIndex: 40
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1400px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <button 
-              onClick={() => window.history.back()}
-              style={{
-                padding: '0.75rem',
-                backgroundColor: '#f3f4f6',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '1.25rem',
-                transition: 'background-color 0.2s'
-              }}
-            >
-              ←
-            </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <span style={{ fontSize: '2rem' }}>{currentProduct.image}</span>
-              <div>
-                <h1 style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1f2937', margin: 0 }}>
-                  {currentProduct.name}
-                </h1>
-                <p style={{ fontSize: '1rem', color: '#6b7280', margin: 0 }}>
-                  {currentProduct.brand} • {currentProduct.category}
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <select
-              value={currentProduct.id}
-              onChange={(e) => loadProduct(e.target.value)}
-              style={{
-                padding: '0.5rem 1rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '8px',
-                backgroundColor: '#ffffff',
-                fontSize: '0.875rem'
-              }}
-            >
-              <option value="coca-cola">Coca-Cola Classic</option>
-              <option value="organic-almond-milk">Organic Almond Milk</option>
-            </select>
-            
-            <button
-              onClick={() => loadProduct(currentProduct.id)}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#3b82f6',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '0.875rem',
-                cursor: 'pointer'
-              }}
-            >
-              🔄 Refresh
-            </button>
-            
-            <UserButton afterSignOutUrl="/" />
-          </div>
-        </div>
-      </header>
 
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem', display: 'flex', gap: '2rem' }}>
+
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '4rem 2rem 2rem', display: 'flex', gap: '2rem' }}>
         {/* Main Content */}
         <div style={{ flex: 1 }}>
           {/* Animated Score Cards */}
@@ -360,10 +409,10 @@ export default function DynamicProductAnalysis({ initialProduct = 'coca-cola' }:
               gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
               gap: '1rem'
             }}>
-              <AnimatedScoreCard title="Health Score" score={currentProduct.scores.health} icon="🏥" delay={0} />
-              <AnimatedScoreCard title="Ethical Score" score={currentProduct.scores.ethical} icon="⚖️" delay={100} />
-              <AnimatedScoreCard title="Transparency" score={currentProduct.scores.transparency} icon="🔍" delay={200} />
-              <AnimatedScoreCard title="Overall Score" score={currentProduct.scores.overall} icon="🎯" delay={300} />
+              <AnimatedScoreCard title="Health Score" score={currentProduct?.scores?.health || 5} icon="🏥" delay={0} />
+              <AnimatedScoreCard title="Ethical Score" score={currentProduct?.scores?.ethical || 5} icon="⚖️" delay={100} />
+              <AnimatedScoreCard title="Transparency" score={currentProduct?.scores?.transparency || 5} icon="🔍" delay={200} />
+              <AnimatedScoreCard title="Overall Score" score={currentProduct?.scores?.overall || 5} icon="🎯" delay={300} />
             </div>
           </CollapsibleSection>
 
@@ -511,7 +560,7 @@ export default function DynamicProductAnalysis({ initialProduct = 'coca-cola' }:
         </div>
 
         {/* Sticky Sidebar */}
-        <div style={{ width: '320px', position: 'sticky', top: '120px', height: 'fit-content' }}>
+        <div style={{ width: '320px', position: 'sticky', top: '100px', height: 'fit-content' }}>
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '16px',
@@ -544,7 +593,35 @@ export default function DynamicProductAnalysis({ initialProduct = 'coca-cola' }:
             }}
             onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
             onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-            onClick={() => alert('PDF report generation coming soon!')}
+            onClick={async () => {
+              try {
+                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/generate-pdf-report`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    productData: currentProduct,
+                    analysisData: realAnalysisData
+                  })
+                });
+                
+                if (response.ok) {
+                  const blob = await response.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `${currentProduct.name}-transparency-report.pdf`;
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  document.body.removeChild(a);
+                } else {
+                  alert('Failed to generate PDF report');
+                }
+              } catch (error) {
+                console.error('PDF generation error:', error);
+                alert('Error generating PDF report');
+              }
+            }}
             >
               📥 Download PDF Report
             </button>
