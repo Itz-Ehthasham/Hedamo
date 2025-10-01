@@ -3,6 +3,11 @@
   "outputDirectory": "frontend_hedamo/dist",
   "installCommand": "cd frontend_hedamo && npm install",
   "framework": "vite",
+  "functions": {
+    "app/api/**/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "rewrites": [
     {
       "source": "/(.*)",
