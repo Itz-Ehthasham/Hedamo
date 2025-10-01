@@ -99,7 +99,7 @@ HUGGINGFACE_API_KEY=your_hf_key (optional)
 - **Authentication**: Clerk
 - **Database**: PostgreSQL (planned)
 
-## Development
+Option 2 :## Development
 
 ### Local Development
 1. Start all services in order: AI Service → Backend → Frontend
