@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Report {
   id: string;
@@ -45,7 +45,13 @@ const mockReports: Report[] = [
 ];
 
 export default function ReportsPage() {
-  const [reports] = useState<Report[]>(mockReports);
+  const [reports, setReports] = useState<Report[]>([]);
+  
+  useEffect(() => {
+    const savedReports = JSON.parse(localStorage.getItem('savedReports') || '[]');
+    const allReports = [...savedReports, ...mockReports];
+    setReports(allReports);
+  }, []);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [sortBy, setSortBy] = useState('date');
@@ -224,9 +230,15 @@ export default function ReportsPage() {
                   borderRadius: '0.5rem',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s ease'
                 }}
-                onClick={() => alert(`View full report for ${report.productName}`)}
+                onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                onClick={() => {
+                  const productKey = report.productName.toLowerCase().replace(/\s+/g, '-');
+                  window.location.href = `/analyze?product=${encodeURIComponent(report.productName)}`;
+                }}
               >
                 View Full Report
               </button>

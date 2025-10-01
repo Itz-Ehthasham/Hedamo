@@ -35,7 +35,10 @@ function App() {
               color2: 0x8b5cf6,
               quantity: 4,
               birdSize: 0.8,
-              speedLimit: 1
+              speedLimit: 2,
+              separation: 15,
+              alignment: 15,
+              cohesion: 15
             });
             console.log('VANTA Birds initialized with 3 birds');
           } catch (e) {

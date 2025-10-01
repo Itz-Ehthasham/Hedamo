@@ -701,19 +701,50 @@ export default function DynamicProductAnalysis({ initialProduct = 'coca-cola' }:
                 📱 Share Analysis
               </button>
               
-              <button style={{
-                width: '100%',
-                padding: '0.75rem',
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem'
-              }}>
+              <button 
+                onClick={() => {
+                  const reportData = {
+                    id: Date.now().toString(),
+                    productName: currentProduct.name,
+                    brand: currentProduct.brand,
+                    category: currentProduct.category,
+                    healthScore: currentProduct.scores.health,
+                    sustainabilityScore: Math.round((currentProduct.scores.ethical + currentProduct.scores.transparency) / 2),
+                    date: new Date().toISOString().split('T')[0],
+                    summary: `Health: ${currentProduct.scores.health}/10, Ethics: ${currentProduct.scores.ethical}/10, Transparency: ${currentProduct.scores.transparency}/10`
+                  };
+                  
+                  const existingReports = JSON.parse(localStorage.getItem('savedReports') || '[]');
+                  const updatedReports = [reportData, ...existingReports];
+                  localStorage.setItem('savedReports', JSON.stringify(updatedReports));
+                  
+                  alert(`Report saved! "${currentProduct.name}" has been added to your reports.`);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = '#10b981';
+                  e.currentTarget.style.color = 'white';
+                  e.currentTarget.style.borderColor = '#10b981';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f8fafc';
+                  e.currentTarget.style.color = 'black';
+                  e.currentTarget.style.borderColor = '#e2e8f0';
+                }}
+              >
                 💾 Save to Reports
               </button>
             </div>
