@@ -4,6 +4,8 @@ import SimpleHeader from './Components/SimpleHeader'
 import SimpleHero from './Components/SimpleHero'
 import ReportsPage from './Components/ReportsPage'
 import AboutPage from './Components/AboutPage'
+import ProductAnalysisPage from './Components/ProductAnalysisPage'
+import DynamicProductAnalysis from './Components/DynamicProductAnalysis'
 
 function App() {
   const vantaRef = useRef<HTMLDivElement>(null)
@@ -31,8 +33,10 @@ function App() {
   // Simple routing
   useEffect(() => {
     const path = window.location.pathname;
+    const search = window.location.search;
     if (path === '/reports') setCurrentPage('reports');
     else if (path === '/about') setCurrentPage('about');
+    else if (path === '/analyze') setCurrentPage('analyze');
     else setCurrentPage('home');
   }, []);
 
@@ -42,6 +46,11 @@ function App() {
         return <ReportsPage />;
       case 'about':
         return <AboutPage />;
+      case 'analyze':
+        const urlParams = new URLSearchParams(window.location.search);
+        const productName = urlParams.get('product') || 'coca-cola';
+        const productKey = productName.toLowerCase().replace(/\s+/g, '-');
+        return <DynamicProductAnalysis initialProduct={productKey} />;
       default:
         return <SimpleHero />;
     }

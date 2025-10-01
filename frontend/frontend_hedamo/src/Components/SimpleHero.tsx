@@ -1,6 +1,9 @@
 import { SignInButton, SignedIn, SignedOut } from '@clerk/clerk-react';
+import { useState } from 'react';
+import ProductAnalysisModal from './ProductAnalysisModal';
 
 export default function SimpleHero() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <section style={{
       minHeight: '100vh',
@@ -60,16 +63,23 @@ export default function SimpleHero() {
                 cursor: 'pointer',
                 fontSize: '1rem'
               }}
-              onClick={() => {
-                const input = prompt('Enter a product name to analyze:');
-                if (input) {
-                  alert(`Analyzing ${input}... This feature is coming soon!`);
-                }
-              }}
+              onClick={() => setIsModalOpen(true)}
             >
               🔍 Analyze Product
             </button>
           </SignedIn>
+          
+          <ProductAnalysisModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onSubmit={(data) => {
+              console.log('Product analysis data:', data);
+              // Here you'll integrate with your AI service
+              // For now, navigate to results page
+              window.location.href = `/analyze?product=${encodeURIComponent(data.productName || 'analyzed-product')}`;
+              setIsModalOpen(false);
+            }}
+          />
           
           <button style={{
             padding: '1rem 2rem',
