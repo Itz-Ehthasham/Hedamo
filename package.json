@@ -1,0 +1,24 @@
+{
+  "name": "hedamo",
+  "version": "1.0.0",
+  "description": "Product Transparency Platform",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:ai\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:ai": "cd ai-service && python app/main.py",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend_hedamo && npm run dev",
+    "install:all": "npm run install:backend && npm run install:frontend && npm run install:ai",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend_hedamo && npm install",
+    "install:ai": "cd ai-service && pip install -r requirements.txt",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend_hedamo && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": ["transparency", "ai", "product-analysis"],
+  "author": "Hedamo Team",
+  "license": "MIT"
+}
