@@ -637,7 +637,7 @@ export default function DynamicProductAnalysis({ initialProduct = 'coca-cola' }:
             onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             onClick={async () => {
               try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/generate-pdf-report`, {
+                const response = await fetch(`https://courageous-grace-production.up.railway.app/api/generate-pdf-report`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
