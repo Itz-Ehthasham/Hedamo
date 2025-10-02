@@ -16,7 +16,7 @@ services:
       - hedamo-network
 
   backend:
-    build: ./backend
+    # Removed build directive to let Railway use Nixpacks instead of Dockerfile
     container_name: hedamo-backend
     ports:
       - "3001:3001"
