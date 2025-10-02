@@ -1,18 +1,18 @@
 # Hedamo - Product Transparency Platform
 
 A full-stack application for analyzing product transparency with AI-powered insights.
+This project integrates React (frontend), Node.js + Express (backend), and a Python FastAPI AI service.
 
-## Project Structure
-
+## 📂 Project Structure
 ```
 Hedamo/
-├── frontend_hedamo/          # React + TypeScript frontend
-├── backend/                  # Node.js + Express backend
-├── ai-service/              # Python FastAPI AI service
+├── frontend_hedamo/     # React + TypeScript frontend
+├── backend/             # Node.js + Express backend
+├── ai-service/          # Python FastAPI AI service
 └── README.md
 ```
 
-## Quick Start
+## 🚀 Setup Instructions
 
 ### Option 1: Manual Setup
 
@@ -38,16 +38,13 @@ npm run dev
 ```
 
 ### Option 2: Docker (Recommended)
-
-**Or else run the Docker file:**
-
 ```bash
 docker-compose up --build
 ```
 
-This will automatically start all services with proper configuration.
+This will start all services with proper configuration.
 
-## Environment Variables
+## 🔑 Environment Variables
 
 ### Frontend (.env.local)
 ```
@@ -68,30 +65,30 @@ CLERK_SECRET_KEY=your_clerk_secret
 HUGGINGFACE_API_KEY=your_hf_key (optional)
 ```
 
-## API Endpoints
+## 📡 API Endpoints
 
 ### Backend API (Port 3001)
-- `GET /health` - Health check
-- `POST /api/analyze-product` - Analyze product
-- `POST /api/generate-questions` - Generate questions
-- `GET /api/reports` - Get reports
-- `POST /api/generate-pdf-report` - Generate PDF
+- `GET /health` – Health check
+- `POST /api/analyze-product` – Analyze product
+- `POST /api/generate-questions` – Generate follow-up questions
+- `GET /api/reports` – Fetch reports
+- `POST /api/generate-pdf-report` – Generate PDF
 
 ### AI Service API (Port 8000)
-- `GET /health` - Health check
-- `POST /generate-questions` - Generate questions
-- `POST /transparency-score` - Calculate scores
+- `GET /health` – Health check
+- `POST /generate-questions` – Generate AI-powered questions
+- `POST /transparency-score` – Calculate transparency score
 
-## Features
+## ✨ Features
 
-- 🔍 Product Analysis with AI
+- 🔍 AI-driven Product Analysis
 - 📊 Transparency Scoring
-- 📱 Responsive Design
+- 📱 Responsive Design (mobile + web)
 - 🔐 Clerk Authentication
 - 📄 PDF Report Generation
-- 🤖 AI-Powered Questions
+- 🤖 AI-Powered Dynamic Questions
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 - **Frontend**: React, TypeScript, Vite, Tailwind CSS
 - **Backend**: Node.js, Express, TypeScript
@@ -99,33 +96,64 @@ HUGGINGFACE_API_KEY=your_hf_key (optional)
 - **Authentication**: Clerk
 - **Database**: PostgreSQL (planned)
 
-Option 2 :## Development
+## 🧪 Sample Product Entry + Example Report
 
-### Local Development
-1. Start all services in order: AI Service → Backend → Frontend
-2. Frontend will be available at http://localhost:5173
-3. Backend API at http://localhost:3001
-4. AI Service at http://localhost:8000
-
-### Docker Deployment
-
-1. **Setup Environment:**
-```bash
-cp .env.docker .env
-# Edit .env with your actual keys
+### Sample Input:
+```json
+{
+  "productName": "EcoFresh Water Bottle",
+  "material": "Recycled Stainless Steel",
+  "manufacturer": "GreenWare Co.",
+  "countryOfOrigin": "India",
+  "certifications": ["BPA-Free", "ISO 14001"]
+}
 ```
 
-2. **Build and Run:**
+### Generated Report (Summary Example):
+```json
+{
+  "productName": "EcoFresh Water Bottle",
+  "transparencyScore": 82,
+  "analysis": {
+    "materials": "Made from 100% recycled stainless steel.",
+    "safety": "Certified BPA-Free and ISO 14001 compliant.",
+    "origin": "Manufactured in India with moderate labor transparency.",
+    "sustainability": "Strong focus on eco-friendly practices."
+  },
+  "recommendations": [
+    "Provide more details about worker safety standards.",
+    "Share third-party environmental audit results."
+  ]
+}
+```
+
+## 🔄 Development Workflow
+
+### Local Development
+1. Start services in order: AI Service → Backend → Frontend
+2. Frontend → http://localhost:5173
+3. Backend API → http://localhost:3001
+4. AI Service → http://localhost:8000
+
+### Docker Deployment
 ```bash
+cp .env.docker .env
 docker-compose up --build
 ```
 
-3. **Access Application:**
 - Frontend: http://localhost
 - Backend API: http://localhost:3001
 - AI Service: http://localhost:8000
 
-4. **Stop Services:**
+Stop with:
 ```bash
 docker-compose down
 ```
+
+## 📝 Bonus Reflection
+
+During development, AI tools played a major role in accelerating progress. I used AI to scaffold boilerplate code, design prompts for the AI service, and even generate example datasets and reports for testing. This reduced setup time and helped me focus on the core logic of product transparency instead of repetitive tasks.
+
+The architecture follows a modular microservice approach: the frontend handles user interaction, the backend manages business logic and authentication, and the AI service is isolated for scalability. This separation ensures flexibility (e.g., swapping AI models without touching the core backend).
+
+From a design perspective, simplicity and clarity were prioritized—users should easily understand how transparency scores are generated. For product transparency logic, I followed principles of explainability (showing why a score was given) and fairness (ensuring AI suggestions aren't biased towards certain products or regions). The platform is built not only to analyze but also to build trust through openness.
