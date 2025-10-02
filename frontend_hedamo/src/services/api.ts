@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://courageous-grace-production.up.railway.app';
 console.log('API_BASE_URL:', API_BASE_URL);
 console.log('VITE_API_URL env:', import.meta.env.VITE_API_URL);
 
