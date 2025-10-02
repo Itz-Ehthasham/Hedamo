@@ -6,8 +6,7 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
-RUN npx tsc
 
 EXPOSE 3001
 
-CMD ["npm", "start"]
+CMD ["npx", "ts-node", "src/server.ts"]
